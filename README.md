@@ -5,7 +5,7 @@ Use to optional log some struct field
 go get github.com/gitlab/xlebenny/optionalLogger
 
 ## Usage
-````
+````go
 type structB struct {
     field1 string `oLog:"2"`
 }
