@@ -2,7 +2,7 @@
 Use to optional log some struct field
 
 ## Installation
-go get github.com/gitlab/xlebenny/optionalLogger
+go get github.com/xlebenny/ologger
 
 ## Usage
 ````go
