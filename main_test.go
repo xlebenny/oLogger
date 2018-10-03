@@ -12,6 +12,7 @@ func TestLog(t *testing.T) {
 		fieldC string `oLog:"4"`
 		fieldD string `oLog:"5"`
 	}
+	fieldA := "fieldA"
 	fieldAValue := "valueA"
 	fieldBValue := 123
 
@@ -250,6 +251,49 @@ func TestLog(t *testing.T) {
 				},
 			},
 			want: `{"":{"fieldA":"valueA","fieldB":{"fieldC":"valueC"}}}`,
+		},
+		{
+			name: "TestMap",
+			args: args{
+				logLevel:     4,
+				indentString: "",
+				obj: map[string]string{
+					"fieldA": "valueA",
+					"fieldB": "valueB",
+				},
+			},
+			want: `{"":{"fieldA":"valueA","fieldB":"valueB"}}`,
+		},
+		{
+			name: "TestValuePointerMap",
+			args: args{
+				logLevel:     4,
+				indentString: "",
+				obj: map[string]*string{
+					fieldA: &fieldAValue,
+				},
+			},
+			want: `{"":{"fieldA":"valueA"}}`,
+		},
+		{
+			name: "TestKeyPointerValuePointerMap",
+			args: args{
+				logLevel:     4,
+				indentString: "",
+				obj: map[*string]*string{
+					&fieldA: &fieldAValue,
+				},
+			},
+			want: `{"":{"fieldA":"valueA"}}`,
+		},
+		{
+			name: "TestSlice",
+			args: args{
+				logLevel:     4,
+				indentString: "",
+				obj:          []string{"valueA", "valueB", "valueC"},
+			},
+			want: `{"":["valueA","valueB","valueC"]}`,
 		},
 	}
 	for _, tt := range tests {

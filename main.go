@@ -2,6 +2,7 @@ package ologger
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"strconv"
 )
@@ -25,17 +26,19 @@ func Log(logLevel int, indentString string, obj interface{}) string {
 	return string(result)
 }
 
-func extractOLogField(logLevel int, obj interface{}) *map[string]interface{} {
-	result := &map[string]interface{}{}
+func extractOLogField(logLevel int, obj interface{}) map[string]interface{} {
+	result := map[string]interface{}{}
 	var typeSwitchFunc func(t reflect.Type, v reflect.Value)
 	typeSwitchFunc = func(t reflect.Type, v reflect.Value) {
 		switch t.Kind() {
 		case reflect.Ptr:
 			typeSwitchFunc(t.Elem(), v.Elem())
 		case reflect.Struct:
-			(*result)[""] = extractStruct(logLevel, t, v)
+			result[""] = extractStruct(logLevel, t, v)
+		case reflect.Map, reflect.Slice:
+			result[""] = extractValue(logLevel, v)
 		default:
-			(*result)[""] = obj
+			result[""] = obj
 		}
 	}
 	typeSwitchFunc(reflect.TypeOf(obj), reflect.ValueOf(obj))
@@ -43,8 +46,8 @@ func extractOLogField(logLevel int, obj interface{}) *map[string]interface{} {
 	return result
 }
 
-func extractStruct(logLevel int, t reflect.Type, v reflect.Value) *map[string]interface{} {
-	result := &map[string]interface{}{}
+func extractStruct(logLevel int, t reflect.Type, v reflect.Value) map[string]interface{} {
+	result := map[string]interface{}{}
 
 	for i := 0; i < v.NumField(); i++ {
 		field := t.Field(i)
@@ -53,7 +56,7 @@ func extractStruct(logLevel int, t reflect.Type, v reflect.Value) *map[string]in
 		isLog := isNeedToLog(logLevel, tag)
 
 		if isLog {
-			(*result)[field.Name] = extractFieldValue(logLevel, value)
+			result[field.Name] = extractFieldValue(logLevel, value)
 		}
 	}
 
@@ -75,7 +78,12 @@ func extractFieldValue(logLevel int, value reflect.Value) interface{} {
 func extractValue(logLevel int, v reflect.Value) interface{} {
 	switch v.Kind() {
 	case reflect.Array, reflect.Slice:
-		return v
+		len := v.Len()
+		s := make([]interface{}, len)
+		for i := 0; i < len; i++ {
+			s[i] = extractFieldValue(logLevel, v.Index(i))
+		}
+		return s
 	case reflect.Bool:
 		return v.Bool()
 	case reflect.Chan:
@@ -93,7 +101,13 @@ func extractValue(logLevel int, v reflect.Value) interface{} {
 	case reflect.Invalid:
 		return nil
 	case reflect.Map:
-		return v
+		m := map[string]interface{}{} //FIXME: it will deallocated if type is map[interface{}]interface{}
+		for _, k := range v.MapKeys() {
+			key := fmt.Sprint(extractFieldValue(logLevel, k))
+			value := extractFieldValue(logLevel, v.MapIndex(k))
+			m[key] = value
+		}
+		return m
 	case reflect.Ptr:
 		return extractFieldValue(logLevel, v.Elem())
 	case reflect.String:
