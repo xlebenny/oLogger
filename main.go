@@ -27,16 +27,18 @@ func Log(logLevel int, indentString string, obj interface{}) string {
 
 func extractOLogField(logLevel int, obj interface{}) *map[string]interface{} {
 	result := &map[string]interface{}{}
-
-	t := reflect.TypeOf(obj)
-	v := reflect.ValueOf(obj)
-	isStruct := (t.Kind() == reflect.Struct)
-
-	if isStruct {
-		(*result)[t.Name()] = extractStruct(logLevel, t, v)
-	} else {
-		(*result)[t.Name()] = obj
+	var typeSwitchFunc func(t reflect.Type, v reflect.Value)
+	typeSwitchFunc = func(t reflect.Type, v reflect.Value) {
+		switch t.Kind() {
+		case reflect.Ptr:
+			typeSwitchFunc(t.Elem(), v.Elem())
+		case reflect.Struct:
+			(*result)[""] = extractStruct(logLevel, t, v)
+		default:
+			(*result)[""] = obj
+		}
 	}
+	typeSwitchFunc(reflect.TypeOf(obj), reflect.ValueOf(obj))
 
 	return result
 }
@@ -60,16 +62,17 @@ func extractStruct(logLevel int, t reflect.Type, v reflect.Value) *map[string]in
 
 func extractFieldValue(logLevel int, value reflect.Value) interface{} {
 	var result interface{}
-	if value.Kind() == reflect.Struct {
+	switch value.Kind() {
+	case reflect.Struct:
 		result = extractStruct(logLevel, value.Type(), value)
-	} else {
-		result = extractValue(value)
+	default:
+		result = extractValue(logLevel, value)
 	}
 	return result
 }
 
 // ref https://play.golang.org/p/C4F1BHXAGNR
-func extractValue(v reflect.Value) interface{} {
+func extractValue(logLevel int, v reflect.Value) interface{} {
 	switch v.Kind() {
 	case reflect.Array, reflect.Slice:
 		return v
@@ -92,7 +95,7 @@ func extractValue(v reflect.Value) interface{} {
 	case reflect.Map:
 		return v
 	case reflect.Ptr:
-		return v.Elem()
+		return extractFieldValue(logLevel, v.Elem())
 	case reflect.String:
 		return v.String()
 	case reflect.Struct:

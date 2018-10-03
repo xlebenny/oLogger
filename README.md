@@ -38,6 +38,3 @@ Parameter Name | Description
 logLevel | Log when `LogLevel >= struct oLog`
 indentString | Direct pass to json.MarshalIndent / json.Marshal
 obj | Your object
-
-## TODO
-Haven't test Pointer

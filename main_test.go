@@ -8,6 +8,12 @@ func TestLog(t *testing.T) {
 	type innerStruct struct {
 		fieldC string `oLog:"0"`
 	}
+	type pointerStruct struct {
+		fieldC string `oLog:"4"`
+		fieldD string `oLog:"5"`
+	}
+	fieldAValue := "valueA"
+	fieldBValue := 123
 
 	type args struct {
 		logLevel     int
@@ -19,6 +25,15 @@ func TestLog(t *testing.T) {
 		args args
 		want string
 	}{
+		{
+			name: "TestNoStruct",
+			args: args{
+				logLevel:     4,
+				indentString: "",
+				obj:          "valueA",
+			},
+			want: `{"":"valueA"}`,
+		},
 		{
 			name: "TestLogExportVariable",
 			args: args{
@@ -181,6 +196,60 @@ func TestLog(t *testing.T) {
 				},
 			},
 			want: `{"":{}}`,
+		},
+		{
+			name: "TestPointerNoStruct",
+			args: args{
+				logLevel:     4,
+				indentString: "",
+				obj:          &fieldAValue,
+			},
+			want: `{"":"valueA"}`,
+		},
+		{
+			name: "TestPointerStructPrimitiveType",
+			args: args{
+				logLevel:     4,
+				indentString: "",
+				obj: struct {
+					fieldA *string `oLog:"0"`
+					fieldB *int    `oLog:"0"`
+				}{
+					fieldA: &fieldAValue,
+					fieldB: &fieldBValue,
+				},
+			},
+			want: `{"":{"fieldA":"valueA","fieldB":123}}`,
+		},
+		{
+			name: "TestPointerAtRootStruct",
+			args: args{
+				logLevel:     4,
+				indentString: "",
+				obj: &pointerStruct{
+					fieldC: "valueC",
+					fieldD: "valueD",
+				},
+			},
+			want: `{"":{"fieldC":"valueC"}}`,
+		},
+		{
+			name: "TestPointerAtInnerStruct",
+			args: args{
+				logLevel:     4,
+				indentString: "",
+				obj: struct {
+					fieldA string         `oLog:"4"`
+					fieldB *pointerStruct `oLog:"4"`
+				}{
+					fieldA: "valueA",
+					fieldB: &pointerStruct{
+						fieldC: "valueC",
+						fieldD: "valueD",
+					},
+				},
+			},
+			want: `{"":{"fieldA":"valueA","fieldB":{"fieldC":"valueC"}}}`,
 		},
 	}
 	for _, tt := range tests {
