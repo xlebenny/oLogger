@@ -167,6 +167,21 @@ func TestLog(t *testing.T) {
 			},
 			want: `{"":{"fieldB":123}}`,
 		},
+		{
+			name: "TestTagCaseInsensitive",
+			args: args{
+				logLevel:     4,
+				indentString: "",
+				obj: struct {
+					fieldA string `OlOg:"0"`
+					fieldB int    `oLoG:"0"`
+				}{
+					fieldA: "valueA",
+					fieldB: 123,
+				},
+			},
+			want: `{"":{}}`,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
