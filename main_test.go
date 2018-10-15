@@ -265,6 +265,28 @@ func TestLog(t *testing.T) {
 			want: `{"":{"fieldA":"valueA","fieldB":"valueB"}}`,
 		},
 		{
+			name: "TestMapWithStructValue",
+			args: args{
+				logLevel:     4,
+				indentString: "",
+				obj: map[string]innerStruct{
+					"fieldA": innerStruct{fieldC: "valueC"},
+				},
+			},
+			want: `{"":{"fieldA":{"fieldC":"valueC"}}}`,
+		},
+		{
+			name: "TestMapWithPointerStructKeyStructValue",
+			args: args{
+				logLevel:     4,
+				indentString: "",
+				obj: map[*pointerStruct]innerStruct{
+					&pointerStruct{fieldC: "keyA"}: innerStruct{fieldC: "valueC"},
+				},
+			},
+			want: `{"":{"map[fieldC:keyA]":{"fieldC":"valueC"}}}`,
+		},
+		{
 			name: "TestValuePointerMap",
 			args: args{
 				logLevel:     4,
