@@ -1,4 +1,6 @@
 # Optional Logger
+[![CircleCI](https://circleci.com/gh/xlebenny/oLogger.svg?style=svg)](https://circleci.com/gh/xlebenny/oLogger)
+
 Use to optional log some struct field
 
 ## Installation
